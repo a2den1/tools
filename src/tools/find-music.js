@@ -83,7 +83,7 @@ export default function (root) {
     step('소리 자르는 중');
     const ff = await getFFmpeg();
     const dur = info.duration || 60;
-    const n = Math.max(1, Math.min(8, Math.floor(dur / 40)));
+    const n = Math.max(1, Math.min(3, Math.floor(dur / 60))); // 무료 인식 횟수를 아끼려고 최대 3곳
     const points = Array.from({ length: n }, (_, i) => Math.max(0, Math.floor(((i + 0.5) * dur) / n) - 6));
     const clips = await withInputs(ff, [new File([blob], `a.${a.ext}`)], async (dir) => {
       const res = [];
@@ -160,8 +160,7 @@ export default function (root) {
     }
 
     if (!found && !ch.length) parts.push(`<div class="panel fm-none"><i class="fa-regular fa-face-meh"></i><b>찾은 음악이 없어요</b></div>`);
-    if (!enabled) parts.push(`<div class="note"><i class="fa-solid fa-circle-info"></i><span>소리로 찾기는 Vercel 환경 변수에 <b class="mono">AUDD_API_TOKEN</b> 을 넣으면 켜져요.</span></div>`);
-    else if (recError) parts.push(errBox(recError));
+    if (enabled && recError) parts.push(errBox(recError));
     out.innerHTML = parts.join('');
   }
 

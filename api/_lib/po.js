@@ -52,6 +52,8 @@ async function minter() {
 }
 
 const tokens = new Map();
+let lastErr = null;
+export const lastError = () => lastErr;
 
 // 영상 ID 에 묶인 토큰 (실패하면 null — 토큰 없이도 되는 경우가 있어서)
 export async function poToken(videoId) {
@@ -64,6 +66,7 @@ export async function poToken(videoId) {
     return token;
   } catch (e) {
     console.error('[po]', e.message);
+    lastErr = String(e?.stack || e).slice(0, 600);
     return null;
   }
 }

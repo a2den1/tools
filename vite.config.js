@@ -24,9 +24,6 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['@ffmpeg/ffmpeg', '@ffmpeg/util'],
   },
-  ssr: {
-    external: ['youtubei.js', 'bgutils-js', 'jsdom'],
-  },
   worker: {
     format: 'es',
   },

@@ -1,7 +1,21 @@
-import { $, $$, segHTML, seg, fmtBytes } from '../ui.js';
-import { urlBar, bindUrlBar, skeleton, card, errBox, api, runJob, pickAudio } from './yt-common.js';
+import { $, $$, segHTML, seg } from '../ui.js';
+import { urlBar, bindUrlBar, skeleton, card, errBox, api, runJob } from './yt-common.js';
 
-const resName = (h) => (h >= 4320 ? '8K' : h >= 2160 ? '4K' : h >= 1440 ? 'QHD' : h >= 1080 ? 'FHD' : h >= 720 ? 'HD' : '');
+// 영상에 없는 화질을 고르면 변환 서비스가 있는 것 중 가장 좋은 화질로 준다
+const QUALITIES = [
+  ['4k', '2160p', '4K'],
+  ['1440', '1440p', 'QHD'],
+  ['1080', '1080p', 'FHD'],
+  ['720', '720p', 'HD'],
+  ['480', '480p', ''],
+  ['360', '360p', ''],
+];
+const AUDIO = [
+  ['mp3', 'MP3'],
+  ['m4a', 'M4A'],
+  ['wav', 'WAV'],
+  ['flac', 'FLAC'],
+];
 
 export function ytDownloader(root, mode) {
   let stopJob = null;
@@ -24,7 +38,7 @@ export function ytDownloader(root, mode) {
     opts.innerHTML = '';
     infoBox.innerHTML = skeleton();
     try {
-      const info = await api('/api/info?url=' + encodeURIComponent(url));
+      const info = { ...(await api('/api/meta?url=' + encodeURIComponent(url))), url };
       if (!alive || my !== seq) return;
       infoBox.innerHTML = card(info);
       mode === 'audio' ? audioOpts(info) : videoOpts(info);
@@ -34,41 +48,33 @@ export function ytDownloader(root, mode) {
   });
 
   function videoOpts(info) {
-    if (!info.qualities.length) {
-      opts.innerHTML = errBox('받을 수 있는 화질이 없어요');
-      return;
-    }
-    const audio = pickAudio(info, { preferAac: true });
     opts.innerHTML = `
-      <div class="q-grid">${info.qualities
-        .map(
-          (q, i) => `<button class="q${i === 0 ? ' on' : ''}" data-i="${i}" style="--i:${i}">
-            <b>${q.height}p</b>
-            <span>${resName(q.height) ? `<em>${resName(q.height)}</em>` : ''}${q.fps}fps${q.hdr ? ' HDR' : ''}</span>
-            <small>${fmtBytes(q.size + (audio?.size || 0))}</small>
-          </button>`,
-        )
-        .join('')}</div>
+      <div class="q-grid">${QUALITIES.map(
+        ([v, name, tag], i) => `<button class="q${v === '1080' ? ' on' : ''}" data-v="${v}" style="--i:${i}">
+          <b>${name}</b>
+          <span>${tag ? `<em>${tag}</em>` : ''}MP4</span>
+        </button>`,
+      ).join('')}</div>
       <button class="btn wide" id="yt-dl" style="height:56px;font-size:16px"><i class="fa-solid fa-download"></i>MP4 다운로드</button>`;
     $$('.q', opts).forEach((b) => b.addEventListener('click', () => $$('.q', opts).forEach((x) => x.classList.toggle('on', x === b))));
     $('#yt-dl', opts).addEventListener('click', () => {
-      const q = info.qualities[+$('.q.on', opts).dataset.i];
+      const q = $('.q.on', opts);
       stopJob?.();
-      stopJob = runJob(job, info, { type: 'video', quality: q });
+      stopJob = runJob(job, info, q.dataset.v, `${q.querySelector('b').textContent} MP4`);
     });
   }
 
   function audioOpts(info) {
     opts.innerHTML = `
       <div class="panel row between">
-        <span class="label" style="margin:0">음질</span>
-        ${segHTML([['128', '128k'], ['192', '192k'], ['256', '256k'], ['320', '320k']], '320')}
+        <span class="label" style="margin:0">형식</span>
+        ${segHTML(AUDIO, 'mp3')}
       </div>
-      <button class="btn wide" id="yt-dl" style="height:56px;font-size:16px"><i class="fa-solid fa-download"></i>MP3 다운로드</button>`;
+      <button class="btn wide" id="yt-dl" style="height:56px;font-size:16px"><i class="fa-solid fa-download"></i>다운로드</button>`;
     const s = seg($('.seg', opts));
     $('#yt-dl', opts).addEventListener('click', () => {
       stopJob?.();
-      stopJob = runJob(job, info, { type: 'audio', bitrate: +s.value });
+      stopJob = runJob(job, info, s.value, s.value.toUpperCase());
     });
   }
 

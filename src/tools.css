@@ -186,7 +186,6 @@
 }
 
 .job-done .ic {
-  background: var(--good-soft);
   color: var(--good);
   animation: pop-in 0.6s var(--spring) both;
 }

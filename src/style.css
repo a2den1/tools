@@ -135,17 +135,18 @@ a {
   flex-shrink: 0;
 }
 
-.brand img {
-  width: 36px;
-  height: 36px;
+.brand i {
+  color: var(--text);
+  font-size: 24px;
+  transform-origin: 70% 70%;
   transition: transform 0.6s var(--spring);
 }
 
-.brand:hover img {
-  transform: rotate(-10deg) scale(1.08);
+.brand:hover i {
+  transform: rotate(-24deg);
 }
 
-.brand:active img {
+.brand:active i {
   transform: scale(0.9);
 }
 
@@ -295,15 +296,21 @@ main {
   place-items: center;
   width: 52px;
   height: 52px;
-  border-radius: 16px;
-  background: color-mix(in srgb, var(--c) 14%, white);
   color: var(--c);
   font-size: 22px;
-  transition: transform 0.6s var(--spring), background 0.3s;
+  transition: transform 0.6s var(--spring);
+}
+
+.tile .ic {
+  width: auto;
+  height: 36px;
+  justify-items: start;
+  font-size: 30px;
+  transform-origin: left center;
 }
 
 .tile:hover .ic {
-  transform: rotate(-10deg) scale(1.1);
+  transform: rotate(-10deg) scale(1.12);
 }
 
 .tile .nm {
@@ -370,10 +377,9 @@ main {
 }
 
 .tool-head .ic {
-  width: 56px;
-  height: 56px;
-  font-size: 24px;
-  border-radius: 18px;
+  width: auto;
+  height: 44px;
+  font-size: 30px;
   animation: pop-in 0.7s var(--spring) both;
 }
 

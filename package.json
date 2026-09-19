@@ -20,7 +20,7 @@
     "@upscalerjs/esrgan-medium": "^1.0.0",
     "@upscalerjs/esrgan-slim": "^1.0.0",
     "bgutils-js": "^4.0.3",
-    "jsdom": "^29.1.1",
+    "jsdom": "^26.1.0",
     "qrcode": "^1.5.4",
     "upscaler": "^1.0.0",
     "youtubei.js": "^18.0.0"

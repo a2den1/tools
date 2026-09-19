@@ -1,18 +1,22 @@
 // 유튜브 정보·스트림 주소 (Vercel 함수와 로컬 개발 서버가 같이 쓴다)
 import { Innertube, Platform } from 'youtubei.js';
+import { cookieHeader } from './cookie.js';
 
 // 스트림 주소 서명 해독용 플레이어 스크립트 실행기
 Platform.shim.eval = async (data) => new Function(data.output)();
 
-// 2026-09 확인: MWEB + PO 토큰이면 봇 의심을 받는 IP 에서도 스트림 끝까지 받힌다.
-// VISIONOS 는 토큰 없이도 되지만 봇 확인에 잘 걸리고, IOS 는 앞 4MB 뒤로 403 이라 마지막 예비.
-const CLIENTS = ['MWEB', 'VISIONOS', 'IOS'];
+// 2026-09 확인: MWEB + PO 토큰이면 봇 의심을 받는 가정용 IP 에서도 스트림 끝까지 받힌다.
+// Vercel(데이터센터) IP 는 로그인 쿠키 없이는 모든 클라이언트가 봇 확인에 걸린다 → cookie.js.
+// 쿠키가 있으면 TV 클라이언트가 PO 토큰 없이도 되는 경우가 많아 앞에 둔다.
+const COOKIE = cookieHeader();
+const CLIENTS = COOKIE ? ['TV', 'MWEB', 'WEB', 'VISIONOS', 'IOS'] : ['MWEB', 'VISIONOS', 'IOS'];
+export const hasCookie = !!COOKIE;
 export const validPot = (s) => (typeof s === 'string' && /^[\w=-]{20,600}$/.test(s) ? s : null);
 export const CHUNK = 4 * 1024 * 1024; // Vercel 응답 한도(4.5MB) 아래
 
 let ytP = null;
 export function innertube() {
-  ytP ??= Innertube.create({ retrieve_player: true, generate_session_locally: true }).catch((e) => {
+  ytP ??= Innertube.create({ retrieve_player: true, generate_session_locally: !COOKIE, ...(COOKIE ? { cookie: COOKIE } : {}) }).catch((e) => {
     ytP = null;
     throw e;
   });
@@ -54,21 +58,40 @@ async function basicInfo(id, client, pot) {
   return info;
 }
 
+// 정보만 되고 스트림 중간이 403 인 클라이언트가 있어서, 영상 한가운데를 조금 받아 보고 고른다
+async function streamWorks(id, client, info, pot) {
+  const f = info.streaming_data.adaptive_formats.filter((x) => x.has_video && +x.content_length > 5e6).sort((a, b) => a.content_length - b.content_length)[0];
+  if (!f) return true; // 작은 영상은 앞부분만으로 충분
+  try {
+    const url = await streamUrl(id, f.itag, client, false, pot);
+    const mid = Math.floor(+f.content_length / 2);
+    return (await fetch(`${url}&range=${mid}-${mid + 9999}`)).ok;
+  } catch {
+    return false;
+  }
+}
+
 export async function getInfo(id, pot) {
   let last;
+  let fallback = null;
   for (const client of CLIENTS) {
     try {
-      return { client, pot, info: await basicInfo(id, client, pot) };
+      const info = await basicInfo(id, client, pot);
+      if (await streamWorks(id, client, info, pot)) return { client, pot, info };
+      fallback ??= { client, pot, info };
+      last = new Error('stream blocked');
     } catch (e) {
       last = e;
       if (/private|removed|unavailable|존재하지/i.test(e.message) && e.status === 'ERROR') break;
     }
   }
+  if (fallback) return fallback; // 끝까지는 못 받아도 정보와 작은 파일은 된다
   throw new Error(korean(last?.message));
 }
 
 function korean(msg = '') {
-  if (/sign in to confirm/i.test(msg)) return '유튜브가 서버 접속을 봇으로 의심해 막았어요. 잠시 뒤 다시 시도해 주세요.';
+  if (/sign in to confirm/i.test(msg))
+    return hasCookie ? '유튜브가 막았어요. 넣어 둔 쿠키가 만료됐을 수 있어요.' : '유튜브가 서버 접속을 봇으로 의심해 막았어요. 유튜브 쿠키를 넣으면 풀려요.';
   if (/age|confirm your age/i.test(msg)) return '연령 제한 영상은 받을 수 없어요.';
   if (/private/i.test(msg)) return '비공개 영상이에요.';
   if (/members/i.test(msg)) return '멤버십 전용 영상이에요.';

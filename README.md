@@ -1,71 +1,41 @@
 # Tools
 
-여러 도구를 한 곳에 모은 사이트.
-
-- 사이트(`/`) — Vite + 바닐라 JS. Vercel 에 그대로 배포.
-- 다운로드 서버(`server/`) — 유튜브 영상·MP3·음악 찾기용. yt-dlp + ffmpeg 가 필요해서 Vercel 이 아니라 PC 나 VPS 에서 따로 돌린다.
+여러 도구를 한 곳에 모은 사이트. Vite + 바닐라 JS, Vercel 에 그대로 배포한다.
 
 ## 개발
 
 ```bash
 npm install
-npm run dev          # http://localhost:5173
-npm run server       # http://localhost:8787 (따로 터미널에서)
+npm run dev
 ```
 
-개발 서버는 `/api` 를 `localhost:8787` 로 넘겨준다.
+개발 서버가 `api/*.js` 를 Vercel 함수와 똑같이 실행해 준다.
 
 ## 배포
 
-### 사이트 → Vercel
-
 GitHub 저장소를 Vercel 에 연결하면 끝. 설정은 `vercel.json` 에 있다.
-다운로드 서버 주소를 기본값으로 넣으려면 Vercel 환경 변수에 `VITE_API_URL` 을 추가한다.
 
-```
-VITE_API_URL=https://내-서버-주소
-```
+## 구조
 
-비워 두면 유튜브 도구 화면에서 서버 주소를 직접 입력할 수 있다(브라우저에 저장됨).
+- `src/` — 사이트. 도구는 `src/tools/*.js`, 목록은 `src/tools/index.js`.
+- `api/` — Vercel 함수 (유튜브 도구용)
+  - `info` — 영상 정보·화질 목록 ([youtubei.js](https://github.com/LuanRT/YouTube.js))
+  - `chunk` — 스트림을 4MB 씩 대신 받아 준다. 유튜브 주소는 받은 서버 IP 에 묶여 있고 CORS 가 없어서 브라우저가 직접 못 받는다.
+  - `thumb` — MP3 앨범아트용 썸네일
+  - `recognize` — 음악 인식(AudD) 중계
+  - `_lib/po.js` — BotGuard 로 PO 토큰을 만든다. 없으면 유튜브가 서버 요청을 봇으로 보고 막는다.
 
-### 다운로드 서버
+유튜브 영상은 조각으로 받아 브라우저 안의 ffmpeg.wasm 으로 영상·소리를 합치거나 MP3 로 바꾼다.
+1.5GB 가 넘으면 브라우저 메모리로 합칠 수 없어 영상과 소리를 따로 저장한다.
 
-```bash
-cd server
-npm install
-npm start
-```
-
-필요한 것:
-
-- Node 20 이상
-- yt-dlp — `pip install -U "yt-dlp[default]"` (자주 업데이트할 것)
-- ffmpeg 는 `ffmpeg-static` 으로 자동 설치
-
-Docker:
-
-```bash
-docker build -t tools-api server
-docker run -p 8787:8787 -e ALLOWED_ORIGINS=https://내-사이트.vercel.app tools-api
-```
-
-환경 변수:
+## 환경 변수 (선택)
 
 | 이름 | 설명 |
 | --- | --- |
-| `PORT` | 기본 8787 |
-| `ALLOWED_ORIGINS` | 허용할 사이트 주소(쉼표 구분). 기본 `*` |
 | `AUDD_API_TOKEN` | [AudD](https://audd.io) 토큰. 넣으면 "영상 속 음악 찾기"가 소리로도 곡을 찾는다 |
-| `MAX_JOBS` | 동시에 받을 작업 수. 기본 2 |
-| `YTDLP_PATH` | yt-dlp 실행 파일 경로(자동으로 못 찾을 때) |
-| `YTDLP_COOKIES` | 유튜브가 봇 확인을 요구할 때 쓸 cookies.txt 경로 |
-
-유튜브는 데이터센터 IP 를 자주 막으므로 집 PC 에서 돌리고
-[Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/) 등으로 여는 편이 가장 잘 된다.
-자기 PC 에서만 쓸 거라면 사이트에서 서버 주소를 `http://localhost:8787` 로 넣어도 된다.
 
 ## 라이선스 메모
 
-- 배경 제거에 쓰는 `@imgly/background-removal` 은 AGPL-3.0 이다. 저장소를 공개해 두면 문제없다.
+- 배경 제거에 쓰는 `@imgly/background-removal` 은 AGPL-3.0 이라 저장소를 공개로 둔다.
 - 폰트: 펴진고딕(눈누, OFL), Monocraft(OFL), Font Awesome Free.
 - 효과음은 전부 브라우저에서 합성한 소리라 저작권 문제가 없다.

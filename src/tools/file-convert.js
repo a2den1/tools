@@ -1,6 +1,5 @@
 import { $, $$, seg, segHTML, range, paintRanges, dropzone, download, baseName, fmtBytes, fmtTime, esc, toast } from '../ui.js';
-
-const CORE = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/esm';
+import { getFFmpeg, resetFFmpeg } from '../ffmpeg.js';
 
 const TARGETS = {
   video: [
@@ -20,49 +19,6 @@ const TARGETS = {
   ],
 };
 const MIME = { mp4: 'video/mp4', webm: 'video/webm', mov: 'video/quicktime', mkv: 'video/x-matroska', gif: 'image/gif', mp3: 'audio/mpeg', wav: 'audio/wav', m4a: 'audio/mp4', ogg: 'audio/ogg', flac: 'audio/flac', opus: 'audio/ogg' };
-
-let ffmpeg = null;
-let loading = null;
-
-// @ffmpeg/util 의 toBlobURL 은 gzip 된 Content-Length 를 실제 크기로 믿어서 CDN 에서 멈춘다.
-// 받은 양이 헤더보다 커지면 전체 크기를 모르는 것으로 보고 끝까지 받는다.
-async function blobURL(url, type, onProgress) {
-  const r = await fetch(url);
-  if (!r.ok) throw new Error(`변환기를 받지 못했어요 (${r.status})`);
-  const encoded = !!r.headers.get('content-encoding');
-  let total = encoded ? 0 : +r.headers.get('content-length') || 0;
-  if (!total && /\.wasm$/.test(url)) total = 32_232_419; // ffmpeg-core 0.12.10 wasm 크기
-  const reader = r.body.getReader();
-  const chunks = [];
-  let received = 0;
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    chunks.push(value);
-    received += value.length;
-    onProgress?.({ received, total: Math.max(total, received) });
-  }
-  return URL.createObjectURL(new Blob(chunks, { type }));
-}
-
-async function getFFmpeg(onProgress) {
-  if (ffmpeg) return ffmpeg;
-  if (!loading) {
-    loading = (async () => {
-      const { FFmpeg } = await import('@ffmpeg/ffmpeg');
-      const ff = new FFmpeg();
-      const coreURL = await blobURL(`${CORE}/ffmpeg-core.js`, 'text/javascript');
-      const wasmURL = await blobURL(`${CORE}/ffmpeg-core.wasm`, 'application/wasm', onProgress);
-      await ff.load({ coreURL, wasmURL });
-      ffmpeg = ff;
-      return ff;
-    })().catch((e) => {
-      loading = null;
-      throw e;
-    });
-  }
-  return loading;
-}
 
 function parseTime(s) {
   s = String(s || '').trim();
@@ -207,11 +163,7 @@ export default function (root) {
     probe.onerror = () => URL.revokeObjectURL(probeUrl);
     probe.src = probeUrl;
 
-    $('#stop', work).addEventListener('click', () => {
-      ffmpeg?.terminate();
-      ffmpeg = null;
-      loading = null;
-    });
+    $('#stop', work).addEventListener('click', resetFFmpeg);
 
     $('#go', work).addEventListener('click', async () => {
       const start = parseTime($('#t0', work).value);
@@ -279,7 +231,7 @@ export default function (root) {
         const secs = ((performance.now() - t0) / 1000).toFixed(1);
         const media = out === 'gif' ? `<img src="${resultUrl}" alt="" style="border-radius:16px;margin:auto">` : TARGETS.video.some(([v]) => v === out) ? `<video src="${resultUrl}" controls playsinline style="width:100%;border-radius:16px;background:#000"></video>` : `<audio src="${resultUrl}" controls style="width:100%"></audio>`;
         $('#result', work).innerHTML = `
-          <div class="panel stack" style="animation:rise .6s var(--ease) both">
+          <div class="panel stack" style="animation:rise .6s var(--ease) backwards">
             ${media}
             <div class="row">
               <div class="grow" style="min-width:0"><b class="ellipsis">${esc(name)}</b><span class="muted mono">${fmtBytes(blob.size)} · ${secs}초</span></div>
@@ -306,11 +258,7 @@ export default function (root) {
   return () => {
     alive = false;
     dz.destroy();
-    if (busy) {
-      ffmpeg?.terminate();
-      ffmpeg = null;
-      loading = null;
-    }
+    if (busy) resetFFmpeg();
     if (resultUrl) URL.revokeObjectURL(resultUrl);
   };
 }

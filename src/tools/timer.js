@@ -148,7 +148,7 @@ export default function (root) {
       .reverse()
       .map(([s, i], k) => {
         const cls = splits.length > 2 && s === min ? 'good' : splits.length > 2 && s === max ? 'bad' : '';
-        return `<div class="out" style="${k === 0 ? 'animation:rise .45s var(--ease) both' : ''}"><span class="k">랩 ${i + 1}</span><b class="v mono ${cls}">${fmtW(s)}</b><span class="muted mono" style="padding-right:12px">${fmtW(W.laps[i])}</span></div>`;
+        return `<div class="out" style="${k === 0 ? 'animation:rise .45s var(--ease) backwards' : ''}"><span class="k">랩 ${i + 1}</span><b class="v mono ${cls}">${fmtW(s)}</b><span class="muted mono" style="padding-right:12px">${fmtW(W.laps[i])}</span></div>`;
       })
       .join('');
   }

@@ -77,7 +77,7 @@
   grid-template-columns: 240px minmax(0, 1fr);
   gap: 20px;
   align-items: center;
-  animation: rise 0.55s var(--ease) both;
+  animation: rise 0.55s var(--ease) backwards;
 }
 
 @media (max-width: 600px) {
@@ -137,7 +137,7 @@
   text-align: left;
   cursor: pointer;
   transition: background 0.3s, color 0.3s, transform 0.45s var(--spring);
-  animation: rise 0.5s var(--ease) both;
+  animation: rise 0.5s var(--ease) backwards;
   animation-delay: calc(var(--i) * 35ms);
 }
 
@@ -176,18 +176,24 @@
   color: #fff;
 }
 
-.q.on span {
+.q small {
+  color: var(--muted);
+  font: 12px var(--mono);
+}
+
+.q.on span,
+.q.on small {
   color: rgba(255, 255, 255, 0.65);
 }
 
 .job,
 .job-done {
-  animation: rise 0.5s var(--ease) both;
+  animation: rise 0.5s var(--ease) backwards;
 }
 
 .job-done .ic {
   color: var(--good);
-  animation: pop-in 0.6s var(--spring) both;
+  animation: pop-in 0.6s var(--spring) backwards;
 }
 
 /* music finder */
@@ -224,7 +230,7 @@
 }
 
 .fm-song {
-  animation: rise 0.5s var(--ease) both;
+  animation: rise 0.5s var(--ease) backwards;
 }
 
 .fm-song b {
@@ -267,7 +273,7 @@
   touch-action: none;
   cursor: ew-resize;
   background-color: var(--surface);
-  animation: rise 0.6s var(--ease) both;
+  animation: rise 0.6s var(--ease) backwards;
 }
 
 .cmp img {
@@ -367,7 +373,7 @@
   cursor: pointer;
   box-shadow: 0 3px 10px -3px rgba(16, 24, 40, 0.3);
   transition: transform 0.4s var(--spring), box-shadow 0.3s;
-  animation: pop-in 0.5s var(--spring) both;
+  animation: pop-in 0.5s var(--spring) backwards;
   animation-delay: calc(var(--i, 0) * 25ms);
 }
 
@@ -415,7 +421,7 @@
 
 .conv {
   padding: 8px 8px 8px 8px;
-  animation: rise 0.45s var(--ease) both;
+  animation: rise 0.45s var(--ease) backwards;
 }
 
 .conv b {
@@ -613,7 +619,7 @@ canvas.pixel {
   font: 700 11px var(--mono);
   cursor: pointer;
   transition: transform 0.4s var(--spring), background 0.4s;
-  animation: rise 0.5s var(--ease) both;
+  animation: rise 0.5s var(--ease) backwards;
   animation-delay: calc(var(--i) * 30ms);
 }
 
@@ -766,7 +772,7 @@ canvas.pixel {
   border-radius: 18px;
   background: #fff;
   box-shadow: var(--lift);
-  animation: pop-in 0.45s var(--spring) both;
+  animation: pop-in 0.45s var(--spring) backwards;
 }
 
 /* display preview */
@@ -889,7 +895,7 @@ canvas.pixel {
   align-content: start;
   gap: 10px;
   text-align: center;
-  animation: rise 0.55s var(--ease) both;
+  animation: rise 0.55s var(--ease) backwards;
   animation-delay: calc(min(var(--i), 24) * 22ms);
 }
 
@@ -1173,7 +1179,7 @@ canvas.pixel {
   font-size: 30px;
   font-weight: 700;
   cursor: copy;
-  animation: pop-in 0.5s var(--spring) both;
+  animation: pop-in 0.5s var(--spring) backwards;
   animation-delay: calc(var(--i) * 60ms);
   transition: background 0.35s, color 0.35s, transform 0.45s var(--spring);
 }
@@ -1194,7 +1200,7 @@ canvas.pixel {
   flex-basis: 100%;
   text-align: center;
   color: var(--muted);
-  animation: rise 0.4s var(--ease) both;
+  animation: rise 0.4s var(--ease) backwards;
 }
 
 .sum b {

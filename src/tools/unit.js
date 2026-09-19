@@ -79,7 +79,7 @@ export default function (root) {
         let out;
         if (cat.value === 'temp') out = fromK[k](toK[src](v));
         else out = (v * c.units.find((u) => u[0] === src)[2]) / f;
-        return `<div class="out click" data-u="${esc(k)}" data-v="${Number.isFinite(out) ? out : ''}" style="${anim ? `animation:rise .5s var(--ease) both;animation-delay:${i * 30}ms` : ''}">
+        return `<div class="out click" data-u="${esc(k)}" data-v="${Number.isFinite(out) ? out : ''}" style="${anim ? `animation:rise .5s var(--ease) backwards;animation-delay:${i * 30}ms` : ''}">
           <span class="k">${esc(n)}</span><b class="v mono" style="font-size:17px">${fmt(out)}</b><span class="muted mono" style="padding-right:12px">${esc(k)}</span>
         </div>`;
       })

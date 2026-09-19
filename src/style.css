@@ -271,7 +271,7 @@ main {
   border-radius: var(--r-lg);
   background: var(--surface);
   transition: transform 0.55s var(--spring), background 0.3s, box-shadow 0.45s var(--ease);
-  animation: rise 0.7s var(--ease) both;
+  animation: rise 0.7s var(--ease) backwards;
   animation-delay: calc(var(--i, 0) * 32ms);
   -webkit-tap-highlight-color: transparent;
 }
@@ -344,7 +344,7 @@ main {
 
 .empty.show {
   display: flex;
-  animation: rise 0.5s var(--ease) both;
+  animation: rise 0.5s var(--ease) backwards;
 }
 
 /* ---------- tool page ---------- */
@@ -380,7 +380,7 @@ main {
   width: auto;
   height: 44px;
   font-size: 30px;
-  animation: pop-in 0.7s var(--spring) both;
+  animation: pop-in 0.7s var(--spring) backwards;
 }
 
 .tool-head h1 {
@@ -399,7 +399,7 @@ main {
 }
 
 .tool-body > * {
-  animation: rise 0.65s var(--ease) both;
+  animation: rise 0.65s var(--ease) backwards;
   min-width: 0;
 }
 

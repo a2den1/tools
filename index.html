@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="description" content="자주 쓰는 도구를 한 곳에서" />
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+    <title>Tools</title>
+  </head>
+  <body>
+    <header class="top" id="top">
+      <a class="brand" href="/" aria-label="Tools 홈">
+        <img src="/logo.svg" alt="" width="36" height="36" />
+        <span>Tools</span>
+      </a>
+      <label class="search">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input id="search" type="search" placeholder="검색" autocomplete="off" spellcheck="false" />
+        <kbd>/</kbd>
+      </label>
+    </header>
+    <main id="view"></main>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
